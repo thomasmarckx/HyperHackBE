@@ -1,0 +1,26 @@
+{
+  "name": "content",
+  "plural": "content",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "contentId": {
+      "type": "string",
+      "required": true
+    },
+    "encryptKey": {
+      "type": "string",
+      "required": true
+    },
+    "encryptedContent": {
+      "type": "object"
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}

@@ -1,0 +1,16 @@
+{
+  "db": {
+    "name": "db",
+    "connector": "memory"
+  },
+  "contentDS": {
+    "host": "",
+    "port": 0,
+    "url": "",
+    "database": "contentdatabase",
+    "password": "",
+    "name": "contentDS",
+    "user": "",
+    "connector": "mongodb"
+  }
+}
