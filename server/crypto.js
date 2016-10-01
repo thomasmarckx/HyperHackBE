@@ -1,17 +1,19 @@
 var ursa = require("ursa");
 
-var clearText='使用RSA加密解密字符串';
+var clearText='Encrypt and decrypt strings using RSA.';
 
 var keySizeBits = 1024;
 var keyPair = ursa.generatePrivateKey(keySizeBits, 65537);
+var pubKey = ursa.createPublicKey(keyPair.toPublicPem());
+var priKey = ursa.createPrivateKey(keyPair.toPrivatePem());
 
-var encrypted = encrypt(clearText, keySizeBits/8);
-console.log('加密后的数据：'+encrypted);
+var rsaencrypted = encryptRSA(clearText, pubKey, keySizeBits/8);
+console.log('String encrypted: '+rsaencrypted);
 
-var decrypted = decrypt(encrypted, keySizeBits/8);
-console.log('加密数据解密：'+decrypted);
+var rsadecrypted = decryptRSA(rsaencrypted, priKey, keySizeBits/8);
+console.log('String decrypted: '+rsadecrypted);
 
-function encrypt(clearText, keySizeBytes){
+function encryptRSA(clearText, pubKey, keySizeBytes){
     var buffer = new Buffer(clearText);
     var maxBufferSize = keySizeBytes - 42; //according to ursa documentation
     var bytesDecrypted = 0;
@@ -27,7 +29,7 @@ function encrypt(clearText, keySizeBytes){
         buffer.copy(tempBuffer, 0, bytesDecrypted, bytesDecrypted + amountToCopy);
 
         //encrypts and stores current chunk
-        var encryptedBuffer = keyPair.encrypt(tempBuffer);
+        var encryptedBuffer = pubKey.encrypt(tempBuffer);
         encryptedBuffersList.push(encryptedBuffer);
 
         bytesDecrypted += amountToCopy;
@@ -37,7 +39,7 @@ function encrypt(clearText, keySizeBytes){
     return Buffer.concat(encryptedBuffersList).toString('base64');
 }
 
-function decrypt(encryptedString, keySizeBytes){
+function decryptRSA(encryptedString, priKey, keySizeBytes){
 
     var encryptedBuffer = new Buffer(encryptedString, 'base64');
     var decryptedBuffers = [];
@@ -54,10 +56,38 @@ function decrypt(encryptedString, keySizeBytes){
         var tempBuffer = new Buffer(keySizeBytes);
         encryptedBuffer.copy(tempBuffer, 0, i*keySizeBytes, (i+1)*keySizeBytes);
         //decrypts and stores current chunk
-        var decryptedBuffer = keyPair.decrypt(tempBuffer);
+        var decryptedBuffer = priKey.decrypt(tempBuffer);
         decryptedBuffers.push(decryptedBuffer);
     }
 
     //concatenates all decrypted buffers and returns the corresponding String
     return Buffer.concat(decryptedBuffers).toString();
+}
+
+var crypto = require('crypto');
+var text = 'Hello World!';
+var hashed = hashText(text);
+console.log('SHA256 hashed: ' + hashed);
+var aesencrypted = encryptAES(text, hashed);
+console.log('AES encrypted: ' + aesencrypted);
+console.log('AES decrypted: ' + decryptAES(aesencrypted, hashed));
+
+function hashText(text){
+    var hash = crypto.createHmac('sha256', 'noonelivesforever');
+    hash.update(text);
+    return hash.digest('hex').toString();
+}   
+
+function encryptAES(text, key){
+  var cipher = crypto.createCipher('aes-256-ctr', key);
+  var crypted = cipher.update(text,'utf8','hex');
+  crypted += cipher.final('hex');
+  return crypted;
+}
+ 
+function decryptAES(text, key){
+  var decipher = crypto.createDecipher('aes-256-ctr', key);
+  var dec = decipher.update(text,'hex','utf8');
+  dec += decipher.final('utf8');
+  return dec;
 }
